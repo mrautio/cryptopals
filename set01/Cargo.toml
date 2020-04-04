@@ -1,0 +1,14 @@
+[package]
+name = "set01"
+version = "0.1.0"
+authors = ["Mika Rautio"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+base64 = "0.12.0"
+hex = "0.4.2"
+regex = "1.3.6"
+openssl-sys = "0.9"
+openssl = "0.10"
