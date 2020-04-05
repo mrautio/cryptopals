@@ -1,12 +1,6 @@
-use std::io::prelude::*;
-use std::fs::File;
-use regex::Regex;
-use std::path::PathBuf;
 use openssl::symm::{decrypt, Cipher};
 use std::collections::HashSet;
-
-// https://docs.rs/openssl/0.10.28/openssl/
-// ssl dev libraries needed: apt install pkg-config libssl-dev
+use setcommon::io;
 
 /// Set 1, Challenge 1. Converts hexadecimals to bytes and encodes the result to base64
 ///
@@ -115,23 +109,11 @@ pub fn brute_force_single_byte_xor(hex_str : &str) -> Result<(String, f64, u8), 
     Ok(best_result)
 }
 
-fn read_file_to_string(file : &str, buffer : &mut String) {
-    let mut file_absolute_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    file_absolute_path.push("resources/");
-    file_absolute_path.push(file);
-
-    let mut f = File::open(file_absolute_path).expect("could not open file!");
-    
-    f.read_to_string(buffer).expect("could not read file!");
-}
-
 /// Set 1, Challenge 4. Detect single-character XOR from a file
 pub fn brute_force_xor_decrypt_string_from_file(file : &str) -> Result<(String, f64, u8), &'static str> {
-    let mut buffer = String::new();
-    read_file_to_string(file, &mut buffer);
+    let buffer = io::read_file_to_string(file);
 
-    let re = Regex::new(r"\s+").unwrap();
-    let rows: Vec<&str> = re.split(&buffer).collect();
+    let rows = io::split_whitespace(&buffer);
 
     let mut best_result = (String::new(), std::f64::MIN, 0);
     for row in rows {
@@ -146,10 +128,6 @@ pub fn brute_force_xor_decrypt_string_from_file(file : &str) -> Result<(String, 
 }
 
 /// Set 1, Challenge 6. Break repeating-key XOR
-macro_rules! get_bit {
-    ($byte:expr, $bit:expr) => (if $byte & (1 << $bit) != 0 { 1 } else { 0 });
-}
-
 pub fn calculate_hamming_distance(arg1 : &[u8], arg2 : &[u8], size : usize) -> u64 {
     if size > arg1.len() {
         panic!("Input strings are smaller than size! '{}' < '{}'", arg1.len(), size);
@@ -165,8 +143,8 @@ pub fn calculate_hamming_distance(arg1 : &[u8], arg2 : &[u8], size : usize) -> u
         let c2 = arg2[i];
 
         for b in (0..8).rev() {
-            let bit1 : u8 = get_bit!(c1, b);
-            let bit2 : u8 = get_bit!(c2, b);
+            let bit1 : u8 = setcommon::get_bit!(c1, b);
+            let bit2 : u8 = setcommon::get_bit!(c2, b);
             
             if bit1 != bit2 {
                 result = result + 1;
@@ -253,12 +231,9 @@ pub fn break_repeating_key_xor(probable_key_size : usize, encrypted_data : Vec<u
 }
 
 pub fn brute_force_repeating_key_xor() -> (usize, String, String) {
-    let mut buffer = String::new();
-    read_file_to_string("6.txt", &mut buffer);
+    let mut buffer = io::read_file_to_string("6.txt");
     
-    //base64 crate's decode doesn't allow whitespaces
-    buffer.retain(|c| !" \n".contains(c));
-    let encrypted_data = base64::decode(buffer).expect("could not decode base64");
+    let encrypted_data = io::base64_decode(&mut buffer);
 
     //  Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40. 
     const KEY_SIZE_MIN : usize = 2;
@@ -276,12 +251,9 @@ pub fn brute_force_repeating_key_xor() -> (usize, String, String) {
 
 /// Set 1, Challenge 7. AES in ECB mode
 pub fn decrypt_aes_128_ecb() -> String {
-    let mut buffer = String::new();
-    read_file_to_string("7.txt", &mut buffer);
+    let mut buffer = io::read_file_to_string("7.txt");
 
-    //base64 crate's decode doesn't allow whitespaces
-    buffer.retain(|c| !" \n".contains(c));
-    let encrypted_data = base64::decode(buffer).expect("could not decode base64");
+    let encrypted_data = io::base64_decode(&mut buffer);
 
     let key = "YELLOW SUBMARINE";
     let cipher = Cipher::aes_128_ecb();
@@ -293,11 +265,9 @@ pub fn decrypt_aes_128_ecb() -> String {
 
 /// Set 1, Challenge 8. Detect AES in ECB mode
 pub fn detect_aes_in_ecb() -> (f64, String) {
-    let mut buffer = String::new();
-    read_file_to_string("8.txt", &mut buffer);
+    let buffer = io::read_file_to_string("8.txt");
 
-    let re = Regex::new(r"\s+").unwrap();
-    let rows: Vec<&str> = re.split(&buffer).collect();
+    let rows = io::split_whitespace(&buffer);
 
     let mut best_result = (std::f64::MIN, String::new());
 

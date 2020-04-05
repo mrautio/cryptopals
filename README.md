@@ -6,7 +6,19 @@ Prototyping programming languages and doing [cryptopals.com](https://cryptopals.
 
 Try not to spoil yourself while doing the challenges and rather try them yourself. Challenge solutions are inside setNN directories in this repo.
 
-# Licensing
+## Testing
+
+To run the unit tests:
+```
+docker build -t cryptopals-sets -f Dockerfile .
+```
+
+Alternatively you can run tests per challenge set.
+```
+cargo test
+```
+
+## Licensing
 
 Challenges are by cryptopals site and are according to their copyrights and licensing. The code in this repo is licensed as [CC-0/public domain]((https://github.com/mrautio/cryptopals/blob/master/LICENSE)).
 

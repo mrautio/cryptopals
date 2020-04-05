@@ -14,7 +14,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: docker build -t cryptopals-set01 -f set01/Dockerfile set01
-    - name: Run tests
-      run: docker run -t cryptopals-set01
+    - name: Build and test
+      run: docker build -t cryptopals-sets -f Dockerfile .
